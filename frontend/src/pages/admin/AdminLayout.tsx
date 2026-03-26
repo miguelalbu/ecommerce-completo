@@ -8,18 +8,24 @@ import { useAuth } from "@/context/AuthContext";
 const AdminLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const { isAdminGlobal } = useAuth();
+  const { userRole } = useAuth();
 
-  const menuItems = [
-    { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { path: "/admin/products", label: "Produtos", icon: Package },
-    { path: "/admin/orders", label: "Pedidos", icon: ShoppingBag },
-    { path: "/admin/categories", label: "Categorias", icon: Tag },
-    { path: "/admin/stores", label: "Lojas", icon: Store },
-    { path: "/admin/coupons", label: "Cupons", icon: Ticket },
-    { path: "/admin/users", label: "Usuários", icon: Users },
-    ...(isAdminGlobal ? [{ path: "/admin/admin-users", label: "Administradores", icon: ShieldCheck }] : []),
+  type AdminRole = 'ADMIN' | 'ADMIN_GLOBAL' | 'GERENTE' | 'VENDEDOR';
+
+  const ALL_MENU_ITEMS = [
+    { path: "/admin/dashboard",   label: "Dashboard",       icon: LayoutDashboard, roles: ['ADMIN', 'ADMIN_GLOBAL'] },
+    { path: "/admin/products",    label: "Produtos",        icon: Package,         roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE', 'VENDEDOR'] },
+    { path: "/admin/orders",      label: "Pedidos",         icon: ShoppingBag,     roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE', 'VENDEDOR'] },
+    { path: "/admin/categories",  label: "Categorias",      icon: Tag,             roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
+    { path: "/admin/stores",      label: "Lojas",           icon: Store,           roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
+    { path: "/admin/coupons",     label: "Cupons",          icon: Ticket,          roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
+    { path: "/admin/users",       label: "Usuários",        icon: Users,           roles: ['ADMIN', 'ADMIN_GLOBAL'] },
+    { path: "/admin/admin-users", label: "Administradores", icon: ShieldCheck,     roles: ['ADMIN', 'ADMIN_GLOBAL'] },
   ];
+
+  const menuItems = ALL_MENU_ITEMS.filter(
+    (item) => userRole && (item.roles as AdminRole[]).includes(userRole as AdminRole)
+  );
 
   // Função auxiliar para renderizar o conteúdo da Sidebar
   // Isso evita repetir código para a versão Mobile e Desktop

@@ -2,8 +2,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { AuthProvider } from "./context/AuthContext";
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from "react-router-dom";
+import { AuthProvider, useAuth, UserRole } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
 
 import Home from "./pages/Home";
@@ -27,12 +27,25 @@ import AdminUsers from "./pages/admin/AdminUsers";
 import OrderDetail from "./pages/admin/OrderDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from './pages/Profile';
-import OrdersForm from './pages/admin/OrdersForm'
-import Stores from './pages/admin/Stores'
-import Coupons from './pages/admin/Coupons'
+import OrdersForm from './pages/admin/OrdersForm';
+import Stores from './pages/admin/Stores';
+import Coupons from './pages/admin/Coupons';
 import MyOrders from "./pages/myOrders";
 import ClientOrderDetail from "./pages/ClientOrderDetail";
 
+// Redireciona para /admin/orders se o cargo não tiver permissão para a rota
+const RequireAdminRole = ({ roles }: { roles: UserRole[] }) => {
+  const { userRole, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (!userRole || !roles.includes(userRole)) {
+    return <Navigate to="/admin/orders" replace />;
+  }
+  return <Outlet />;
+};
+
+const ADMIN_ROLES: UserRole[] = ['ADMIN', 'ADMIN_GLOBAL'];
+const MANAGER_ROLES: UserRole[] = ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'];
+const ALL_STAFF: UserRole[] = ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE', 'VENDEDOR'];
 
 const queryClient = new QueryClient();
 
@@ -50,7 +63,6 @@ const App = () => (
                 <Route path="/profile" element={<Profile />} />
               </Route>
 
-
               {/* Rotas da Loja (Públicas) */}
               <Route path="/" element={<Home />} />
               <Route path="/catalog" element={<Catalog />} />
@@ -66,20 +78,31 @@ const App = () => (
               <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
 
-              {/* Rotas do Painel Administrativo (Protegidas) */}
+              {/* Painel Administrativo */}
               <Route path="/admin" element={<AdminLayout />}>
-                <Route path="dashboard" element={<Dashboard />} />
-                <Route path="products" element={<Products />} />
-                <Route path="products/new" element={<ProductForm />} />
-                <Route path="products/edit/:id" element={<ProductForm />} />
-                <Route path="orders" element={<Orders />} />
-                <Route path="orders/new" element={<OrdersForm />} />
-                <Route path="orders/:id" element={<OrderDetail />} />
-                <Route path="categories" element={<Categories />} />
-                <Route path="stores" element={<Stores />} />
-                <Route path="coupons" element={<Coupons />} />
-                <Route path="users" element={<Users />} />
-                <Route path="admin-users" element={<AdminUsers />} />
+                {/* Disponível para todos os cargos admin */}
+                <Route element={<RequireAdminRole roles={ALL_STAFF} />}>
+                  <Route path="products" element={<Products />} />
+                  <Route path="products/new" element={<ProductForm />} />
+                  <Route path="products/edit/:id" element={<ProductForm />} />
+                  <Route path="orders" element={<Orders />} />
+                  <Route path="orders/new" element={<OrdersForm />} />
+                  <Route path="orders/:id" element={<OrderDetail />} />
+                </Route>
+
+                {/* Disponível para Gerente e Admin Global */}
+                <Route element={<RequireAdminRole roles={MANAGER_ROLES} />}>
+                  <Route path="categories" element={<Categories />} />
+                  <Route path="stores" element={<Stores />} />
+                  <Route path="coupons" element={<Coupons />} />
+                </Route>
+
+                {/* Disponível apenas para Admin Global */}
+                <Route element={<RequireAdminRole roles={ADMIN_ROLES} />}>
+                  <Route path="dashboard" element={<Dashboard />} />
+                  <Route path="users" element={<Users />} />
+                  <Route path="admin-users" element={<AdminUsers />} />
+                </Route>
               </Route>
 
               {/* Rota "Não Encontrado" */}

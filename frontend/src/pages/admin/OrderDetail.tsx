@@ -31,8 +31,8 @@ const getStatusConfig = (status: string) => {
 };
 
 const OrderDetail = () => {
-  const { id } = useParams<{ id: string }>(); 
-  const { token } = useAuth();
+  const { id } = useParams<{ id: string }>();
+  const { token, isAdminGlobal } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -81,7 +81,8 @@ const OrderDetail = () => {
             {/* Coluna Esquerda: Itens e Ações */}
             <div className="lg:col-span-2 space-y-6">
                 
-                {/* AÇÕES RÁPIDAS (Controle Total) */}
+                {/* AÇÕES RÁPIDAS — visível apenas para Admin Global */}
+                {isAdminGlobal && (
                 <Card className="bg-muted/20">
                     <CardHeader className="pb-3"><CardTitle className="text-sm font-bold uppercase text-muted-foreground">Gerenciar Pedido</CardTitle></CardHeader>
                     <CardContent className="flex flex-wrap gap-2">
@@ -99,6 +100,7 @@ const OrderDetail = () => {
                         </Button>
                     </CardContent>
                 </Card>
+                )}
 
                 {/* TABELA DE ITENS */}
                 <Card>

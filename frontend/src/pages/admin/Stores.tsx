@@ -38,7 +38,7 @@ type Loja = {
 const emptyForm = { nome: '', endereco: '', telefone: '' };
 
 const Stores = () => {
-  const { token } = useAuth();
+  const { token, isAdminGlobal } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -147,9 +147,11 @@ const Stores = () => {
                     <Button variant="outline" size="icon" onClick={() => handleOpenEdit(loja)}>
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="outline" size="icon" onClick={() => setLojaToDelete(loja)}>
-                      <Trash2 className="h-4 w-4 text-destructive" />
-                    </Button>
+                    {isAdminGlobal && (
+                      <Button variant="outline" size="icon" onClick={() => setLojaToDelete(loja)}>
+                        <Trash2 className="h-4 w-4 text-destructive" />
+                      </Button>
+                    )}
                   </div>
                 </div>
               </CardContent>
