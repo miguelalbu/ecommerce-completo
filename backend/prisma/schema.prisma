@@ -17,7 +17,7 @@ model Usuario {
   nome             String
   email            String    @unique
   senhaHash        String    @map("senha_hash")
-  funcao           String    @default("ADMIN")
+  funcao           String    @default("ADMIN_GLOBAL")
   ativo            Boolean   @default(true)
   criadoEm         DateTime  @default(now()) @map("criado_em")
   resetToken       String?   @map("reset_token")

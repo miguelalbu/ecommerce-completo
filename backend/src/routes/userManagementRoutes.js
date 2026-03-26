@@ -5,7 +5,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 
 // Todas as rotas aqui exigem LOGIN (protect) e CARGO DE ADMIN (authorize)
 router.use(protect);
-router.use(authorize('ADMIN'));
+router.use(authorize('ADMIN', 'ADMIN_GLOBAL'));
 
 router.get('/', userManagementController.getAllUsers);
 router.delete('/users/:id', userManagementController.deleteUser);

@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Package, ShoppingBag, LogOut, Menu, X, Store, Tag, Users, Ticket } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, LogOut, Menu, X, Store, Tag, Users, Ticket, ShieldCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
 
 const AdminLayout = () => {
   const location = useLocation();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isAdminGlobal } = useAuth();
 
   const menuItems = [
     { path: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -16,6 +18,7 @@ const AdminLayout = () => {
     { path: "/admin/stores", label: "Lojas", icon: Store },
     { path: "/admin/coupons", label: "Cupons", icon: Ticket },
     { path: "/admin/users", label: "Usuários", icon: Users },
+    ...(isAdminGlobal ? [{ path: "/admin/admin-users", label: "Administradores", icon: ShieldCheck }] : []),
   ];
 
   // Função auxiliar para renderizar o conteúdo da Sidebar

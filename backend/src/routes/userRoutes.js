@@ -9,7 +9,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 // Pública: qualquer um pode fazer login
 router.post('/login', validate(loginUserSchema), userController.loginUser);
 
-// Protegida: apenas admin autenticado pode criar outro admin
-router.post('/', protect, authorize('ADMIN'), validate(createUserSchema), userController.createUser);
+// Protegida: apenas ADMIN_GLOBAL pode criar outros usuários admin
+router.post('/', protect, authorize('ADMIN', 'ADMIN_GLOBAL'), validate(createUserSchema), userController.createUser);
 
 module.exports = router;

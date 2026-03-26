@@ -1,11 +1,15 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+export type AdminRole = 'ADMIN' | 'ADMIN_GLOBAL' | 'GERENTE' | 'VENDEDOR';
+export type UserRole = AdminRole | 'CUSTOMER';
+
 interface AuthContextType {
   token: string | null;
-  userRole: 'ADMIN' | 'CUSTOMER' | null;
+  userRole: UserRole | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isAdminGlobal: boolean;
   login: (token: string) => void;
   logout: () => void;
 }
@@ -15,7 +19,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [token, setToken] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<'ADMIN' | 'CUSTOMER' | null>(null);
+  const [userRole, setUserRole] = useState<UserRole | null>(null);
   const [isLoading, setIsLoading] = useState(true); 
   const navigate = useNavigate();
 
@@ -58,6 +62,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     userRole,
     isAuthenticated: !!token,
     isLoading,
+    isAdminGlobal: userRole === 'ADMIN' || userRole === 'ADMIN_GLOBAL',
     login,
     logout,
   };

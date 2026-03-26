@@ -287,6 +287,21 @@ export const placeOrder = async (checkoutData: any, token?: string | null) => {
 
 // --- USUÁRIOS E CLIENTES (ADMIN MANAGEMENT) ---
 
+export const createAdminUser = async (
+  data: { name: string; email: string; password: string; funcao: string },
+  token: string
+) => {
+  const response = await fetch(`${BASE_URL}/users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
 // Retorna usuários administrativos/staff
 export const getUsers = async (token: string) => {
   const response = await fetch(`${BASE_URL}/user-management`, {

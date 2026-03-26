@@ -1,15 +1,15 @@
 import { Link, useLocation } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  Package, 
-  ShoppingCart, 
-  Tags, 
-  Users, 
-  LogOut, 
-  X 
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Tags,
+  Users,
+  LogOut,
+  X,
+  ShieldCheck,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext'; // Ajuste conforme seu contexto
+import { useAuth } from '@/context/AuthContext';
 
 interface SidebarProps {
   className?: string;
@@ -18,9 +18,8 @@ interface SidebarProps {
 
 const AdminSidebar = ({ className = "", onNavigate }: SidebarProps) => {
   const location = useLocation();
-  const { logout } = useAuth(); // Se tiver função de logout
+  const { logout, isAdminGlobal } = useAuth();
 
-  // Função auxiliar para verificar se o link está ativo
   const isActive = (path: string) => location.pathname === path || location.pathname.startsWith(path + '/');
 
   const menuItems = [
@@ -29,6 +28,9 @@ const AdminSidebar = ({ className = "", onNavigate }: SidebarProps) => {
     { name: 'Pedidos', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Categorias', path: '/admin/categories', icon: Tags },
     { name: 'Usuários', path: '/admin/users', icon: Users },
+    ...(isAdminGlobal
+      ? [{ name: 'Administradores', path: '/admin/admin-users', icon: ShieldCheck }]
+      : []),
   ];
 
   return (

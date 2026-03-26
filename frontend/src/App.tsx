@@ -23,6 +23,7 @@ import ProductForm from "./pages/admin/ProductForm";
 import Orders from "./pages/admin/Orders";
 import Categories from "./pages/admin/Categories";
 import Users from "./pages/admin/Users";
+import AdminUsers from "./pages/admin/AdminUsers";
 import OrderDetail from "./pages/admin/OrderDetail";
 import ProtectedRoute from "./components/ProtectedRoute";
 import Profile from './pages/Profile';
@@ -78,6 +79,7 @@ const App = () => (
                 <Route path="stores" element={<Stores />} />
                 <Route path="coupons" element={<Coupons />} />
                 <Route path="users" element={<Users />} />
+                <Route path="admin-users" element={<AdminUsers />} />
               </Route>
 
               {/* Rota "Não Encontrado" */}

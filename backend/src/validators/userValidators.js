@@ -40,6 +40,9 @@ const createUserSchema = z.object({
   name: z.string().min(3, { message: 'O nome precisa ter no mínimo 3 caracteres.' }),
   email: z.string().email({ message: 'Formato de e-mail inválido.' }),
   password: z.string().min(6, { message: 'A senha precisa ter no mínimo 6 caracteres.' }),
+  funcao: z.enum(['ADMIN_GLOBAL', 'GERENTE', 'VENDEDOR'], {
+    message: 'Cargo inválido. Use: ADMIN_GLOBAL, GERENTE ou VENDEDOR.',
+  }).default('VENDEDOR'),
 });
 
 const loginUserSchema = z.object({
