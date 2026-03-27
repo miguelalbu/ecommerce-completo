@@ -31,6 +31,7 @@ import Profile from './pages/Profile';
 import OrdersForm from './pages/admin/OrdersForm';
 import Stores from './pages/admin/Stores';
 import Coupons from './pages/admin/Coupons';
+import Logs from './pages/admin/Logs';
 import MyOrders from "./pages/myOrders";
 import ClientOrderDetail from "./pages/ClientOrderDetail";
 
@@ -97,6 +98,7 @@ const App = () => (
                   <Route path="brands" element={<Brands />} />
                   <Route path="stores" element={<Stores />} />
                   <Route path="coupons" element={<Coupons />} />
+                  <Route path="logs" element={<Logs />} />
                 </Route>
 
                 {/* Disponível apenas para Admin Global */}

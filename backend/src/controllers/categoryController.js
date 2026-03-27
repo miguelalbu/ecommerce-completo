@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { registrarLog } = require('../services/logService');
 
 function generateSlug(nome) {
   return nome
@@ -24,6 +25,14 @@ exports.createCategory = async (req, res) => {
   const slug = generateSlug(name);
   try {
     const newCategory = await prisma.categoria.create({ data: { nome: name, slug } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'CREATE_CATEGORY',
+      descricao: `Criou a categoria "${name}"`,
+      entidade: 'CATEGORIA',
+      entidadeId: newCategory.id,
+    });
     res.status(201).json(newCategory);
   } catch (error) {
     if (error.code === 'P2002') return res.status(409).json({ message: 'Categoria já existe.' });
@@ -37,6 +46,14 @@ exports.updateCategory = async (req, res) => {
   const slug = generateSlug(name);
   try {
     const cat = await prisma.categoria.update({ where: { id }, data: { nome: name, slug } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'UPDATE_CATEGORY',
+      descricao: `Renomeou a categoria para "${name}"`,
+      entidade: 'CATEGORIA',
+      entidadeId: id,
+    });
     res.json(cat);
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Categoria não encontrada.' });
@@ -52,6 +69,14 @@ exports.deleteCategory = async (req, res) => {
       return res.status(400).json({ message: 'Não é possível deletar uma categoria que contém produtos.' });
     }
     await prisma.categoria.delete({ where: { id } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'DELETE_CATEGORY',
+      descricao: `Removeu a categoria ID ${id}`,
+      entidade: 'CATEGORIA',
+      entidadeId: id,
+    });
     res.status(204).send();
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Categoria não encontrada.' });
@@ -66,6 +91,14 @@ exports.createSubcategoria = async (req, res) => {
   const slug = generateSlug(nome);
   try {
     const sub = await prisma.subcategoria.create({ data: { nome, slug, categoriaId } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'CREATE_SUBCATEGORY',
+      descricao: `Criou a subcategoria "${nome}" na categoria ID ${categoriaId}`,
+      entidade: 'SUBCATEGORIA',
+      entidadeId: sub.id,
+    });
     res.status(201).json(sub);
   } catch (error) {
     if (error.code === 'P2002') return res.status(409).json({ message: 'Subcategoria já existe nesta categoria.' });
@@ -77,6 +110,14 @@ exports.deleteSubcategoria = async (req, res) => {
   const { id } = req.params;
   try {
     await prisma.subcategoria.delete({ where: { id } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'DELETE_SUBCATEGORY',
+      descricao: `Removeu a subcategoria ID ${id}`,
+      entidade: 'SUBCATEGORIA',
+      entidadeId: id,
+    });
     res.status(204).send();
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Subcategoria não encontrada.' });

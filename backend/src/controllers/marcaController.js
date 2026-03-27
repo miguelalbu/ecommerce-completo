@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { registrarLog } = require('../services/logService');
 
 function generateSlug(nome) {
   return nome
@@ -26,6 +27,14 @@ exports.createMarca = async (req, res) => {
   const slug = generateSlug(nome);
   try {
     const marca = await prisma.marca.create({ data: { nome, slug } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'CREATE_BRAND',
+      descricao: `Criou a marca "${nome}"`,
+      entidade: 'MARCA',
+      entidadeId: marca.id,
+    });
     res.status(201).json(marca);
   } catch (error) {
     if (error.code === 'P2002') return res.status(409).json({ message: 'Marca já existe.' });
@@ -39,6 +48,14 @@ exports.updateMarca = async (req, res) => {
   const slug = generateSlug(nome);
   try {
     const marca = await prisma.marca.update({ where: { id }, data: { nome, slug } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'UPDATE_BRAND',
+      descricao: `Atualizou a marca para "${nome}"`,
+      entidade: 'MARCA',
+      entidadeId: id,
+    });
     res.json(marca);
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Marca não encontrada.' });
@@ -50,6 +67,14 @@ exports.deleteMarca = async (req, res) => {
   const { id } = req.params;
   try {
     await prisma.marca.delete({ where: { id } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'DELETE_BRAND',
+      descricao: `Removeu a marca ID ${id}`,
+      entidade: 'MARCA',
+      entidadeId: id,
+    });
     res.status(204).send();
   } catch (error) {
     if (error.code === 'P2025') return res.status(404).json({ message: 'Marca não encontrada.' });

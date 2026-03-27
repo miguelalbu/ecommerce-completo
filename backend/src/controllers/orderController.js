@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { registrarLog } = require('../services/logService');
 
 // Listar todos os pedidos
 exports.getAllOrders = async (req, res) => {
@@ -84,6 +85,14 @@ exports.createOrder = async (req, res) => {
       return newOrder;
     });
 
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'CREATE_ORDER',
+      descricao: `Registrou venda no balcão — Total: R$ ${parseFloat(valor_total).toFixed(2)}`,
+      entidade: 'PEDIDO',
+      entidadeId: result.id,
+    });
     res.status(201).json(result);
 
   } catch (error) {
@@ -167,6 +176,14 @@ exports.updateOrder = async (req, res) => {
       return updatedOrder;
     });
 
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'UPDATE_ORDER',
+      descricao: `Atualizou o pedido ID ${id}${status ? ` → status: ${status}` : ''}`,
+      entidade: 'PEDIDO',
+      entidadeId: id,
+    });
     res.json(result);
   } catch (error) {
     console.error('Erro ao atualizar pedido:', error);

@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
+const { registrarLog } = require('../services/logService');
 
 exports.getAllProducts = async (req, res) => {
   const { search, categoryId, marcaId, subcategoriaId, sortBy, featuredOnly, includeHidden } = req.query;
@@ -57,6 +58,14 @@ exports.createProduct = async (req, res) => {
         unidade: unidade || null,
       },
     });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'CREATE_PRODUCT',
+      descricao: `Adicionou o produto "${name}"`,
+      entidade: 'PRODUTO',
+      entidadeId: newProduct.id,
+    });
     res.status(201).json(newProduct);
   } catch (error) {
     console.error("Erro ao criar produto:", error);
@@ -85,6 +94,14 @@ exports.deleteProduct = async (req, res) => {
   const { id } = req.params;
   try {
     await prisma.produto.delete({ where: { id } });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'DELETE_PRODUCT',
+      descricao: `Removeu o produto ID ${id}`,
+      entidade: 'PRODUTO',
+      entidadeId: id,
+    });
     res.status(204).send();
   } catch (error) {
     console.error("Erro ao deletar produto:", error);
@@ -121,6 +138,14 @@ exports.updateProduct = async (req, res) => {
     const updatedProduct = await prisma.produto.update({
       where: { id },
       data: dataToUpdate,
+    });
+    await registrarLog({
+      usuarioId: req.user.id,
+      usuarioNome: req.user.nome,
+      acao: 'UPDATE_PRODUCT',
+      descricao: `Editou o produto "${name}"`,
+      entidade: 'PRODUTO',
+      entidadeId: id,
     });
     res.json(updatedProduct);
   } catch (error) {

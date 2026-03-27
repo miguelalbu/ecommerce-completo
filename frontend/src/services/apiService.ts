@@ -523,3 +523,28 @@ export const updateCategory = async (id: string, name: string, token: string) =>
   });
   return handleResponse(response);
 };
+
+// --- LOGS ---
+
+export const getLogs = async (
+  token: string,
+  params?: { usuarioId?: string; entidade?: string; page?: number; limit?: number }
+) => {
+  const query = new URLSearchParams();
+  if (params?.usuarioId) query.append('usuarioId', params.usuarioId);
+  if (params?.entidade) query.append('entidade', params.entidade);
+  if (params?.page) query.append('page', String(params.page));
+  if (params?.limit) query.append('limit', String(params.limit));
+
+  const response = await fetch(`${BASE_URL}/dashboard/logs?${query.toString()}`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  return handleResponse(response);
+};
+
+export const getUsuariosComLogs = async (token: string) => {
+  const response = await fetch(`${BASE_URL}/dashboard/logs/usuarios`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  return handleResponse(response);
+};

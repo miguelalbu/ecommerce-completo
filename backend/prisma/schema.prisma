@@ -22,6 +22,7 @@ model Usuario {
   criadoEm         DateTime  @default(now()) @map("criado_em")
   resetToken       String?   @map("reset_token")
   resetTokenExpiry DateTime? @map("reset_token_expiry")
+  logs             Log[]
 
   @@map("usuarios")
 }
@@ -57,6 +58,21 @@ model Marca {
   produtos Produto[]
 
   @@map("marcas")
+}
+
+model Log {
+  id          String   @id @default(uuid())
+  acao        String
+  descricao   String
+  entidade    String
+  entidadeId  String?  @map("entidade_id")
+  criadoEm   DateTime @default(now()) @map("criado_em")
+
+  usuario     Usuario  @relation(fields: [usuarioId], references: [id])
+  usuarioId   String   @map("usuario_id")
+  usuarioNome String   @map("usuario_nome")
+
+  @@map("logs")
 }
 
 model Loja {
