@@ -35,10 +35,18 @@ import Logs from './pages/admin/Logs';
 import MyOrders from "./pages/myOrders";
 import ClientOrderDetail from "./pages/ClientOrderDetail";
 
-// Redireciona para /admin/orders se o cargo não tiver permissão para a rota
-const RequireAdminRole = ({ roles }: { roles: UserRole[] }) => {
-  const { userRole, isLoading } = useAuth();
+// Guard do painel admin: exige login com cargo admin (não cliente)
+const RequireAdmin = () => {
+  const { isAuthenticated, userRole, isLoading } = useAuth();
   if (isLoading) return null;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+  if (userRole === 'CUSTOMER') return <Navigate to="/" replace />;
+  return <Outlet />;
+};
+
+// Dentro do painel: redireciona para /admin/orders se o cargo não tiver permissão
+const RequireAdminRole = ({ roles }: { roles: UserRole[] }) => {
+  const { userRole } = useAuth();
   if (!userRole || !roles.includes(userRole)) {
     return <Navigate to="/admin/orders" replace />;
   }
@@ -81,6 +89,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
 
               {/* Painel Administrativo */}
+              <Route element={<RequireAdmin />}>
               <Route path="/admin" element={<AdminLayout />}>
                 {/* Disponível para todos os cargos admin */}
                 <Route element={<RequireAdminRole roles={ALL_STAFF} />}>
@@ -107,6 +116,7 @@ const App = () => (
                   <Route path="users" element={<Users />} />
                   <Route path="admin-users" element={<AdminUsers />} />
                 </Route>
+              </Route>
               </Route>
 
               {/* Rota "Não Encontrado" */}
