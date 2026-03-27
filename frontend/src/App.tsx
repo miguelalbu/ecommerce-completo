@@ -22,6 +22,7 @@ import Products from "./pages/admin/Products";
 import ProductForm from "./pages/admin/ProductForm";
 import Orders from "./pages/admin/Orders";
 import Categories from "./pages/admin/Categories";
+import Brands from "./pages/admin/Brands";
 import Users from "./pages/admin/Users";
 import AdminUsers from "./pages/admin/AdminUsers";
 import OrderDetail from "./pages/admin/OrderDetail";
@@ -93,6 +94,7 @@ const App = () => (
                 {/* Disponível para Gerente e Admin Global */}
                 <Route element={<RequireAdminRole roles={MANAGER_ROLES} />}>
                   <Route path="categories" element={<Categories />} />
+                  <Route path="brands" element={<Brands />} />
                   <Route path="stores" element={<Stores />} />
                   <Route path="coupons" element={<Coupons />} />
                 </Route>

@@ -92,7 +92,9 @@ export const getProducts = async (
   categoryId?: string,
   sortBy?: string,
   featuredOnly?: boolean,
-  includeHidden?: boolean
+  includeHidden?: boolean,
+  marcaId?: string,
+  subcategoriaId?: string
 ) => {
   const params = new URLSearchParams();
   if (searchTerm) params.append('search', searchTerm);
@@ -100,6 +102,8 @@ export const getProducts = async (
   if (sortBy) params.append('sortBy', sortBy);
   if (featuredOnly) params.append('featuredOnly', 'true');
   if (includeHidden) params.append('includeHidden', 'true');
+  if (marcaId && marcaId !== 'all') params.append('marcaId', marcaId);
+  if (subcategoriaId && subcategoriaId !== 'all') params.append('subcategoriaId', subcategoriaId);
 
   const response = await fetch(`${BASE_URL}/shop/products?${params.toString()}`);
   return handleResponse(response);
@@ -447,6 +451,75 @@ export const addAddress = async (addressData: any, token: string) => {
       'Authorization': `Bearer ${token}`,
     },
     body: JSON.stringify(addressData),
+  });
+  return handleResponse(response);
+};
+
+// --- MARCAS ---
+
+export const getMarcas = async () => {
+  const response = await fetch(`${BASE_URL}/shop/marcas`);
+  return handleResponse(response);
+};
+
+export const createMarca = async (nome: string, token: string) => {
+  const response = await fetch(`${BASE_URL}/shop/marcas`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ nome }),
+  });
+  return handleResponse(response);
+};
+
+export const updateMarca = async (id: string, nome: string, token: string) => {
+  const response = await fetch(`${BASE_URL}/shop/marcas/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ nome }),
+  });
+  return handleResponse(response);
+};
+
+export const deleteMarca = async (id: string, token: string) => {
+  const response = await fetch(`${BASE_URL}/shop/marcas/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.message || 'Erro ao deletar marca');
+  }
+  return true;
+};
+
+// --- SUBCATEGORIAS ---
+
+export const createSubcategoria = async (categoriaId: string, nome: string, token: string) => {
+  const response = await fetch(`${BASE_URL}/shop/categories/${categoriaId}/subcategorias`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ nome }),
+  });
+  return handleResponse(response);
+};
+
+export const deleteSubcategoria = async (id: string, token: string) => {
+  const response = await fetch(`${BASE_URL}/shop/subcategorias/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.message || 'Erro ao deletar subcategoria');
+  }
+  return true;
+};
+
+export const updateCategory = async (id: string, name: string, token: string) => {
+  const response = await fetch(`${BASE_URL}/shop/categories/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify({ name }),
   });
   return handleResponse(response);
 };

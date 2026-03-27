@@ -27,11 +27,36 @@ model Usuario {
 }
 
 model Categoria {
-  id       String    @id @default(uuid())
-  nome     String    @unique
-  produtos Produto[]
+  id            String         @id @default(uuid())
+  nome          String         @unique
+  slug          String?        @unique
+  produtos      Produto[]
+  subcategorias Subcategoria[]
 
   @@map("categorias")
+}
+
+model Subcategoria {
+  id          String    @id @default(uuid())
+  nome        String
+  slug        String
+  produtos    Produto[]
+
+  categoria   Categoria @relation(fields: [categoriaId], references: [id])
+  categoriaId String    @map("categoria_id")
+
+  @@unique([categoriaId, nome])
+  @@unique([categoriaId, slug])
+  @@map("subcategorias")
+}
+
+model Marca {
+  id       String    @id @default(uuid())
+  nome     String    @unique
+  slug     String    @unique
+  produtos Produto[]
+
+  @@map("marcas")
 }
 
 model Loja {
@@ -47,22 +72,30 @@ model Loja {
 }
 
 model Produto {
-  id          String   @id @default(uuid())
-  nome        String
-  descricao   String?
-  preco       Decimal  @db.Decimal(10, 2)
-  precoCompra Decimal? @map("preco_compra") @db.Decimal(10, 2)
-  estoque     Int      @default(0)
+  id             String   @id @default(uuid())
+  nome           String
+  descricao      String?
+  preco          Decimal  @db.Decimal(10, 2)
+  precoCompra    Decimal? @map("preco_compra") @db.Decimal(10, 2)
+  estoque        Int      @default(0)
   ativo          Boolean  @default(true)
   showInCatalog  Boolean  @default(true) @map("show_in_catalog")
   imageUrl       String?  @map("image_url")
   isFeatured     Boolean  @default(false) @map("is_featured")
-  criadoEm    DateTime @default(now()) @map("criado_em")
+  criadoEm      DateTime @default(now()) @map("criado_em")
+  volume         Int?
+  unidade        String?
 
   categoria   Categoria @relation(fields: [categoriaId], references: [id])
   categoriaId String    @map("categoria_id")
 
-  itens ItemPedido[] // Relação com os itens do pedido
+  marca          Marca?        @relation(fields: [marcaId], references: [id])
+  marcaId        String?       @map("marca_id")
+
+  subcategoria   Subcategoria? @relation(fields: [subcategoriaId], references: [id])
+  subcategoriaId String?       @map("subcategoria_id")
+
+  itens ItemPedido[]
 
   @@map("produtos")
 }

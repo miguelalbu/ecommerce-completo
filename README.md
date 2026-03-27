@@ -172,12 +172,20 @@ ecommerce-saas/
 - **Relações:** `cliente` (FK)
 
 ### Categoria
-- `id`, `nome`
+- `id`, `nome`, `slug`
+- **Relações:** `produtos`, `subcategorias`
+
+### Subcategoria
+- `id`, `nome`, `slug`, `categoriaId`
+- **Relações:** `categoria` (FK), `produtos`
+
+### Marca
+- `id`, `nome`, `slug`
 - **Relações:** `produtos`
 
 ### Produto
-- `id`, `nome`, `descricao`, `preco`, `precoCompra`, `estoque`, `ativo`, `showInCatalog`, `imageUrl`, `isFeatured`, `criadoEm`
-- **Relações:** `categoria` (FK), `itens` (ItemPedido)
+- `id`, `nome`, `descricao`, `preco`, `precoCompra`, `estoque`, `ativo`, `showInCatalog`, `imageUrl`, `isFeatured`, `criadoEm`, `volume`, `unidade`
+- **Relações:** `categoria` (FK), `subcategoria` (FK, opcional), `marca` (FK, opcional), `itens` (ItemPedido)
 
 ### Loja
 - `id`, `nome`, `endereco`, `telefone`, `ativo`, `criadoEm`
@@ -512,12 +520,149 @@ Authorization: Bearer <token>
 - `preco` - Preço de venda
 - `precoCompra` - Preço de compra (opcional, para cálculo de margem)
 - `estoque` - Quantidade em estoque
-- `categoria` - Categoria associada (FK)
+- `categoria` - Categoria associada (FK, obrigatório)
+- `subcategoria` - Subcategoria associada (FK, opcional)
+- `marca` - Marca associada (FK, opcional)
+- `volume` - Volume/quantidade numérica (ex: `100`)
+- `unidade` - Unidade de medida (`ml`, `g`, `oz`, `un`, `kg`, `L`)
 - `imageUrl` - URL da imagem
 - `isFeatured` - Marcar como em destaque
 - `showInCatalog` - Mostrar no catálogo
 - `ativo` - Ativar/desativar produto
 
+
+## 🏷️ Categorias, Subcategorias e Marcas
+
+### Visão geral
+
+O sistema de organização de produtos é composto por três níveis independentes que podem ser combinados livremente:
+
+| Nível | Obrigatório no Produto | Exemplo |
+|---|---|---|
+| Categoria | Sim | Perfumaria, Maquiagem |
+| Subcategoria | Não | Árabes, Importados, Base |
+| Marca | Não | Natura, Truss, O Boticário |
+
+---
+
+### Categoria
+
+Agrupamento principal. Todo produto pertence a exatamente uma categoria.
+
+- Slug gerado automaticamente ao criar (ex: "Cuidados com a Pele" → `cuidados-com-a-pele`)
+- Categorias existentes podem ser renomeadas — o slug é atualizado junto
+- Não é possível deletar uma categoria que tenha produtos associados
+- Gerenciado em **Admin → Categorias**
+
+---
+
+### Subcategoria
+
+Divisão dentro de uma categoria. Vínculo opcional no produto.
+
+- Cada subcategoria pertence a uma categoria pai
+- O slug é gerado automaticamente
+- No formulário de produto, o campo de subcategoria **só aparece** quando a categoria selecionada possui subcategorias cadastradas
+- Para gerenciar: em **Admin → Categorias**, clique na seta `▶` da categoria para expandir e adicionar/remover subcategorias
+
+**Exemplos:**
+```
+Perfumaria
+├── Árabes
+├── Importados
+└── Nacionais
+
+Maquiagem
+├── Base
+├── Batom
+└── Sombra
+```
+
+---
+
+### Marca
+
+Entidade independente de categoria. Um produto de qualquer categoria pode pertencer a qualquer marca.
+
+- Slug gerado automaticamente (ex: "O Boticário" → `o-boticario`)
+- Marcas aparecem no **Header** como dropdown de navegação rápida
+- Clicar numa marca no Header abre o catálogo já filtrado por ela
+- Marcas podem ser renomeadas com edição inline na página de gerenciamento
+- Gerenciado em **Admin → Marcas**
+
+---
+
+### Volume e Unidade
+
+Campos opcionais para descrever a quantidade do produto:
+
+- `volume` — número inteiro (ex: `100`)
+- `unidade` — seleção entre `ml`, `g`, `oz`, `un`, `kg`, `L`
+
+Exemplo de exibição: `100 ml`, `300 g`, `1 L`
+
+---
+
+### Fluxo de cadastro de produto
+
+```
+Produto: "Perfume Árabe Oud"
+  ├── Categoria:    Perfumaria         (obrigatório)
+  ├── Subcategoria: Árabes             (opcional, aparece após escolher Perfumaria)
+  ├── Marca:        —                  (opcional)
+  ├── Volume:       100 ml
+  └── Preço:        R$ 89,90
+
+Produto: "Shampoo Equilibrium"
+  ├── Categoria:    Produtos para Cabelo
+  ├── Subcategoria: Shampoo
+  ├── Marca:        Truss
+  ├── Volume:       300 ml
+  └── Preço:        R$ 59,90
+```
+
+---
+
+### Filtros no Catálogo
+
+A página `/catalog` exibe botões de filtro dinâmicos com base nas categorias e marcas cadastradas.
+
+| Filtro | Comportamento |
+|---|---|
+| Categoria | Filtra produtos por categoria; reseta filtro de marca |
+| Marca | Filtra produtos por marca; reseta filtro de categoria |
+| Ordenação | Combina com qualquer filtro ativo |
+
+**URLs compartilháveis** — ao clicar numa marca no Header, o cliente é levado para:
+```
+/catalog?marca=truss
+/catalog?marca=natura
+```
+
+---
+
+### API — Endpoints relacionados
+
+```
+GET    /api/shop/categories                          — lista categorias com subcategorias
+POST   /api/shop/categories                          — criar categoria (admin)
+PUT    /api/shop/categories/:id                      — renomear categoria (admin)
+DELETE /api/shop/categories/:id                      — deletar categoria (admin)
+
+POST   /api/shop/categories/:categoriaId/subcategorias — criar subcategoria (admin)
+DELETE /api/shop/subcategorias/:id                   — deletar subcategoria (admin)
+
+GET    /api/shop/marcas                              — lista todas as marcas (público)
+POST   /api/shop/marcas                              — criar marca (admin)
+PUT    /api/shop/marcas/:id                          — atualizar marca (admin)
+DELETE /api/shop/marcas/:id                          — deletar marca (admin)
+
+GET    /api/shop/products?marcaId=<id>               — filtrar produtos por marca
+GET    /api/shop/products?categoryId=<id>            — filtrar produtos por categoria
+GET    /api/shop/products?subcategoriaId=<id>        — filtrar por subcategoria
+```
+
+---
 
 ## 🛒 Fluxo de Compra
 
@@ -537,8 +682,9 @@ Authorization: Bearer <token>
 O admin pode acessar funcionalidades completas:
 
 - **Dashboard** - Visão geral com estatísticas
-- **Produtos** - CRUD completo, upload de imagens, categorias, marcação como destaque
-- **Categorias** - Criar e gerenciar categorias
+- **Produtos** - CRUD completo, upload de imagens, categoria, subcategoria, marca, volume e destaque
+- **Categorias** - Criar/renomear categorias e gerenciar subcategorias (expansível)
+- **Marcas** - Criar, editar e deletar marcas com slug automático
 - **Pedidos** - Listar, visualizar detalhes, atualizar status, código de rastreamento
 - **Clientes** - Listar clientes, visualizar histórico de pedidos
 - **Cupons** - Criar, editar, desativar cupons promocionais
