@@ -15,6 +15,8 @@ const checkoutRoutes = require('./routes/checkoutRoutes');
 const authRoutes = require('./routes/authRoutes');
 const lojaRoutes = require('./routes/lojaRoutes');
 const cupomRoutes = require('./routes/cupomRoutes');
+const gastosRoutes = require('./routes/gastosRoutes');
+const boletosRoutes = require('./routes/boletosRoutes');
 
 const app = express();
 const PORT = 3000;
@@ -59,6 +61,8 @@ app.use('/api/checkout', checkoutRoutes); // API Checkout route
 app.use('/api/auth', authRoutes);         // API Auth (forgot/reset password)
 app.use('/api/lojas', lojaRoutes);        // API Lojas route
 app.use('/api/cupons', cupomRoutes);      // API Cupons route
+app.use('/api/gastos', gastosRoutes);     // API Gastos route
+app.use('/api/boletos', boletosRoutes);   // API Boletos route
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port http://localhost:${PORT}`);

@@ -32,6 +32,8 @@ import OrdersForm from './pages/admin/OrdersForm';
 import Stores from './pages/admin/Stores';
 import Coupons from './pages/admin/Coupons';
 import Logs from './pages/admin/Logs';
+import Gastos from './pages/admin/Gastos';
+import Boletos from './pages/admin/Boletos';
 import MyOrders from "./pages/myOrders";
 import ClientOrderDetail from "./pages/ClientOrderDetail";
 
@@ -108,6 +110,8 @@ const App = () => (
                   <Route path="stores" element={<Stores />} />
                   <Route path="coupons" element={<Coupons />} />
                   <Route path="logs" element={<Logs />} />
+                  <Route path="gastos" element={<Gastos />} />
+                  <Route path="boletos" element={<Boletos />} />
                 </Route>
 
                 {/* Disponível apenas para Admin Global */}

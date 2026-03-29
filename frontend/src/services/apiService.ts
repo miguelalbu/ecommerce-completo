@@ -548,3 +548,97 @@ export const getUsuariosComLogs = async (token: string) => {
   });
   return handleResponse(response);
 };
+
+// --- GASTOS ---
+
+export const getGastos = async (token: string, params?: { categoria?: string; dataInicio?: string; dataFim?: string }) => {
+  const query = new URLSearchParams();
+  if (params?.categoria) query.append('categoria', params.categoria);
+  if (params?.dataInicio) query.append('dataInicio', params.dataInicio);
+  if (params?.dataFim) query.append('dataFim', params.dataFim);
+  const response = await fetch(`${BASE_URL}/gastos?${query.toString()}`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  return handleResponse(response);
+};
+
+export const getResumoGastos = async (token: string, params?: { dataInicio?: string; dataFim?: string }) => {
+  const query = new URLSearchParams();
+  if (params?.dataInicio) query.append('dataInicio', params.dataInicio);
+  if (params?.dataFim) query.append('dataFim', params.dataFim);
+  const response = await fetch(`${BASE_URL}/gastos/resumo?${query.toString()}`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  return handleResponse(response);
+};
+
+export const createGasto = async (data: any, token: string) => {
+  const response = await fetch(`${BASE_URL}/gastos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
+export const updateGasto = async (id: string, data: any, token: string) => {
+  const response = await fetch(`${BASE_URL}/gastos/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
+export const deleteGasto = async (id: string, token: string) => {
+  const response = await fetch(`${BASE_URL}/gastos/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.message || 'Erro ao deletar gasto');
+  }
+  return true;
+};
+
+// --- BOLETOS ---
+
+export const getBoletos = async (token: string, status?: string) => {
+  const query = new URLSearchParams();
+  if (status) query.append('status', status);
+  const response = await fetch(`${BASE_URL}/boletos?${query.toString()}`, {
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  return handleResponse(response);
+};
+
+export const createBoleto = async (data: any, token: string) => {
+  const response = await fetch(`${BASE_URL}/boletos`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
+export const updateBoleto = async (id: string, data: any, token: string) => {
+  const response = await fetch(`${BASE_URL}/boletos/${id}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
+export const deleteBoleto = async (id: string, token: string) => {
+  const response = await fetch(`${BASE_URL}/boletos/${id}`, {
+    method: 'DELETE',
+    headers: { 'Authorization': `Bearer ${token}` },
+  });
+  if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.message || 'Erro ao deletar boleto');
+  }
+  return true;
+};

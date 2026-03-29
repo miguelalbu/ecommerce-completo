@@ -8,6 +8,8 @@ import {
   LogOut,
   X,
   ShieldCheck,
+  TrendingDown,
+  FileText,
 } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 
@@ -27,6 +29,8 @@ const AdminSidebar = ({ className = "", onNavigate }: SidebarProps) => {
     { name: 'Produtos', path: '/admin/products', icon: Package },
     { name: 'Pedidos', path: '/admin/orders', icon: ShoppingCart },
     { name: 'Categorias', path: '/admin/categories', icon: Tags },
+    { name: 'Gastos', path: '/admin/gastos', icon: TrendingDown },
+    { name: 'Boletos', path: '/admin/boletos', icon: FileText },
     { name: 'Usuários', path: '/admin/users', icon: Users },
     ...(isAdminGlobal
       ? [{ name: 'Administradores', path: '/admin/admin-users', icon: ShieldCheck }]

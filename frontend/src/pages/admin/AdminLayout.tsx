@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, Outlet, useLocation } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { LayoutDashboard, Package, ShoppingBag, LogOut, Menu, X, Store, Tag, Users, Ticket, ShieldCheck, Boxes, ScrollText } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, LogOut, Menu, X, Store, Tag, Users, Ticket, ShieldCheck, Boxes, ScrollText, TrendingDown, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 
@@ -20,6 +20,8 @@ const AdminLayout = () => {
     { path: "/admin/brands",      label: "Marcas",          icon: Boxes,           roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
     { path: "/admin/stores",      label: "Lojas",           icon: Store,           roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
     { path: "/admin/coupons",     label: "Cupons",          icon: Ticket,          roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
+    { path: "/admin/gastos",      label: "Gastos",          icon: TrendingDown,    roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
+    { path: "/admin/boletos",     label: "Boletos",         icon: FileText,        roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
     { path: "/admin/users",       label: "Usuários",        icon: Users,           roles: ['ADMIN', 'ADMIN_GLOBAL'] },
     { path: "/admin/admin-users", label: "Administradores", icon: ShieldCheck,     roles: ['ADMIN', 'ADMIN_GLOBAL'] },
     { path: "/admin/logs",        label: "Logs",            icon: ScrollText,      roles: ['ADMIN', 'ADMIN_GLOBAL', 'GERENTE'] },
