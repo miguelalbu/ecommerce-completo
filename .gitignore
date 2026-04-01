@@ -4,7 +4,7 @@ node_modules/
 .pnp.js
 package-lock.json
 yarn.lock
-
+.claude
 # Testing
 /coverage
 .nyc_output

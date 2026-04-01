@@ -37,6 +37,7 @@ Este repositório contém uma plataforma de e-commerce profissional pensada para
 - **zod** (validação de dados)
 - **cors** (middleware CORS)
 - **dotenv** (variáveis de ambiente)
+- **Swagger** (documentação completa da API)
 
 ### Frontend
 - **React 18** (framework UI)
