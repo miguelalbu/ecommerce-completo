@@ -1,7 +1,9 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
+const swaggerUi = require('swagger-ui-express');
 const { PrismaClient } = require('@prisma/client');
+const swaggerSpec = require('./config/swagger');
 
 const prisma = new PrismaClient();
 
@@ -25,8 +27,17 @@ app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static('uploads'));
 
+// Swagger UI (apenas em desenvolvimento)
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, {
+    swaggerOptions: {
+      persistAuthorization: true, // Mantém o token JWT ao recarregar a página
+    },
+  }));
+}
+
 app.get('/', (req, res) => {
-  res.json({ message: 'E-commerce API is up and running!' });
+  res.json({ message: 'E-commerce API is up and running! 🚀 Visit /api-docs for API documentation' });
 });
 
 app.get('/api/health', async (req, res) => {
