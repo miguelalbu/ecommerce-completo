@@ -1,6 +1,6 @@
 // src/pages/Checkout.tsx
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Button } from "@/components/ui/button";
@@ -60,10 +60,14 @@ const Checkout = () => {
   const { isAuthenticated, token } = useAuth();
   const { cartItems, clearCart } = useCart();
 
+  // Snapshot do pedido para passar à tela de confirmação
+  const pendingOrderState = useRef<any>(null);
+
   // Estados de controle
   const [deliveryMethod, setDeliveryMethod] = useState<'delivery' | 'pickup'>('delivery');
   const [selectedStoreId, setSelectedStoreId] = useState<string>(pickupLocations[0].id);
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
+  const [paymentMethod, setPaymentMethod] = useState('PIX');
 
   // Campos controlados com máscara (convidado)
   const [cpfValue, setCpfValue] = useState('');
@@ -146,8 +150,13 @@ const Checkout = () => {
     mutationFn: (checkoutData: any) => placeOrder(checkoutData, token),
     onSuccess: (data) => {
       toast({ title: "Pedido realizado com sucesso!" });
+      navigate(`/order-confirmation/${data.id}`, {
+        state: {
+          order: data,
+          ...pendingOrderState.current,
+        },
+      });
       clearCart();
-      navigate(`/order-confirmation/${data.id}`);
     },
     onError: (error: Error) =>
       toast({ title: "Erro no pedido", description: error.message, variant: "destructive" }),
@@ -201,7 +210,7 @@ const Checkout = () => {
             addressData = { ...addrFields, complemento: formProps.complemento || '' };
           }
         } else {
-          const saved = addresses?.find(a => a.id === selectedAddressId);
+          const saved = addresses?.find((a: any) => a.id === selectedAddressId);
           if (!saved) {
             toast({ title: "Erro", description: "Endereço selecionado inválido.", variant: "destructive" });
             return;
@@ -256,6 +265,25 @@ const Checkout = () => {
       address: addressData,
       isPickup: deliveryMethod === 'pickup',
       cupomCodigo: appliedCupom?.codigo || null,
+    };
+
+    // Monta o endereço para exibir na confirmação
+    let addressInfo = '';
+    if (deliveryMethod === 'pickup') {
+      const store = pickupLocations.find(s => s.id === selectedStoreId);
+      addressInfo = store ? store.name : '';
+    } else if (addressData) {
+      addressInfo = `${addressData.rua}, ${addressData.numero}${addressData.complemento ? ' - ' + addressData.complemento : ''} — ${addressData.bairro}, ${addressData.cidade}/${addressData.estado}`;
+    }
+
+    pendingOrderState.current = {
+      cartSnapshot: cartItems.map(i => ({ id: i.id, name: i.name, price: i.price, quantity: i.quantity, image: i.image })),
+      deliveryMethod,
+      paymentMethod,
+      addressInfo,
+      clienteNome: isAuthenticated ? `${profile?.nome ?? ''} ${profile?.sobrenome ?? ''}`.trim() : formProps.nome || '',
+      clienteTelefone: isAuthenticated ? profile?.telefone || '' : telefoneValue,
+      cupom: appliedCupom?.codigo || null,
     };
 
     checkoutMutation.mutate(checkoutData);
@@ -525,7 +553,26 @@ const Checkout = () => {
                 <Card>
                   <CardHeader><CardTitle>Forma de Pagamento</CardTitle></CardHeader>
                   <CardContent>
-                    <p className="text-muted-foreground">O pagamento será simulado nesta versão.</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { value: 'PIX', label: 'PIX', emoji: '💰' },
+                        { value: 'CARTAO_CREDITO', label: 'Cartão de Crédito', emoji: '💳' },
+                        { value: 'CARTAO_DEBITO', label: 'Cartão de Débito', emoji: '💳' },
+                        { value: 'DINHEIRO', label: 'Dinheiro', emoji: '💵' },
+                      ].map(opt => (
+                        <div
+                          key={opt.value}
+                          onClick={() => setPaymentMethod(opt.value)}
+                          className={`cursor-pointer border rounded-lg p-3 flex items-center gap-2 transition-all text-sm ${paymentMethod === opt.value ? 'bg-primary/10 border-primary ring-1 ring-primary' : 'hover:bg-accent/50'}`}
+                        >
+                          <span className="text-lg">{opt.emoji}</span>
+                          <span className={`font-medium ${paymentMethod === opt.value ? 'text-primary' : 'text-muted-foreground'}`}>{opt.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-3">
+                      O pagamento será confirmado diretamente pelo WhatsApp.
+                    </p>
                   </CardContent>
                 </Card>
               </div>
@@ -611,7 +658,7 @@ const Checkout = () => {
                       className="w-full" size="lg"
                       disabled={checkoutMutation.isPending || cartItems.length === 0}
                     >
-                      {checkoutMutation.isPending ? 'Processando...' : 'Confirmar Pedido'}
+                      {checkoutMutation.isPending ? 'Processando...' : 'Finalizar Pedido'}
                     </Button>
                   </CardContent>
                 </Card>

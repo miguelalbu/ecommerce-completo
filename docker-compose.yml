@@ -1,27 +1,94 @@
 version: '3.8'
 
 services:
-  # Serviço do Banco de Dados PostgreSQL
+  # ================== BANCO DE DADOS ==================
   postgres-db:
-    image: postgres:15-alpine  # Usamos uma imagem oficial, leve e recente do Postgres
-    container_name: ecommerce_postgres # Nome fixo para o nosso contêiner
-    restart: always # Sempre reiniciar o contêiner se ele parar
-    
-    # Variáveis de ambiente para configurar o banco na primeira inicialização
+    image: postgres:15-alpine
+    container_name: ecommerce_postgres
+    restart: unless-stopped
+
     environment:
-      POSTGRES_USER: ${POSTGRES_USER} # Usando variável de ambiente do arquivo .env
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD} # Usando variável de ambiente do arquivo .env
-      POSTGRES_DB: ${POSTGRES_DB} # Usando variável de ambiente do arquivo .env
-      
-    # Mapeia a porta 5432 do contêiner para a porta 5432 da sua máquina
-    # Isso permite que você se conecte ao banco de fora do Docker (com DBeaver, etc.)
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+
     ports:
-      - "5432:5432"
-      
-    # Garante que os dados do banco de dados não sejam perdidos ao recriar o contêiner
+      - "${DATABASE_PORT:-5432}:5432"
+
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-# Define o volume nomeado que será gerenciado pelo Docker
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+    networks:
+      - ecommerce-network
+
+  # ================== BACKEND ==================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+
+    container_name: ecommerce_backend
+    restart: unless-stopped
+
+    environment:
+      NODE_ENV: ${NODE_ENV:-production}
+      # DATABASE_URL aponta para o serviço postgres-db (nome interno do Docker)
+      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres-db:5432/${POSTGRES_DB}
+      JWT_SECRET: ${JWT_SECRET}
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3001}
+      BREVO_SMTP_USER: ${BREVO_SMTP_USER:-}
+      BREVO_SMTP_KEY: ${BREVO_SMTP_KEY:-}
+      EMAIL_FROM: ${EMAIL_FROM:-noreply@example.com}
+      EMAIL_FROM_NAME: ${EMAIL_FROM_NAME:-Luar}
+
+    ports:
+      - "${BACKEND_PORT:-3000}:3000"
+
+    volumes:
+      # Bind mount — usa a pasta local ./backend/uploads para imagens existentes ficarem visíveis
+      - ./backend/uploads:/app/uploads
+
+    depends_on:
+      postgres-db:
+        condition: service_healthy
+
+    networks:
+      - ecommerce-network
+
+  # ================== FRONTEND ==================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        # Variáveis Vite são baked no build — passadas como build args
+        VITE_BACKEND_URL: ${VITE_BACKEND_URL:-http://localhost:3000}
+        VITE_WHATSAPP_NUMBER: ${VITE_WHATSAPP_NUMBER:-55}
+
+    container_name: ecommerce_frontend
+    restart: unless-stopped
+
+    ports:
+      - "${FRONTEND_PORT:-3001}:3001"
+
+    depends_on:
+      - backend
+
+    networks:
+      - ecommerce-network
+
+# ================== VOLUMES ==================
 volumes:
   postgres_data:
+    driver: local
+
+# ================== NETWORKS ==================
+networks:
+  ecommerce-network:
+    driver: bridge

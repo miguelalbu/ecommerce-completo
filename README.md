@@ -283,6 +283,131 @@ ecommerce-saas/
 - **Docker** e **Docker Compose** (opcional, para ambiente containerizado)
 
 
+## 🐳 Instalação com Docker (Recomendado)
+
+A forma mais fácil de rodar o projeto é usando Docker. Temos um **Makefile** com diversos comandos para facilitar a vida!
+
+### Requisitos para Docker
+- **Docker** (https://www.docker.com/products/docker-desktop)
+- **Docker Compose** (geralmente já vem com Docker Desktop)
+- **make** (Windows: instale com `choco install make` ou use WSL2)
+
+### Setup Rápido com Docker
+
+```bash
+# 1. Clone o repositório
+git clone https://github.com/seu-usuario/ecommerce-saas.git
+cd ecommerce-saas
+
+# 2. Cria arquivo .env (a partir de .env.example)
+make create-env
+
+# 3. Inicia todos os containers (PostgreSQL, Backend, Frontend)
+make up
+
+# Pronto! Acesse:
+# - Frontend:    http://localhost:3001
+# - Backend API: http://localhost:3000
+# - API Docs:    http://localhost:3000/api-docs
+# - Banco de Dados: localhost:5432
+```
+
+### Comandos Úteis do Makefile
+
+```bash
+# 🚀 INICIALIZAÇÃO
+make up              # Inicia todos os containers
+make down            # Para todos os containers
+make restart         # Reinicia todos os containers
+
+# 🏗️ BUILD
+make build           # Constrói as imagens Docker
+make rebuild         # Reconstrói do zero (sem cache)
+
+# 🎯 SERVIÇOS
+make backend         # Inicia só o Backend
+make frontend        # Inicia só o Frontend
+make db              # Inicia só o PostgreSQL
+
+# 📊 LOGS
+make logs            # Ver logs de todos os containers
+make logs-backend    # Ver logs do Backend
+make logs-frontend   # Ver logs do Frontend
+make logs-db         # Ver logs do Banco
+
+# 🗄️ BANCO DE DADOS
+make db-migrate      # Executar migrations do Prisma
+make db-reset        # Resetar banco (⚠️ perda de dados!)
+make bash-db         # Abrir terminal do PostgreSQL
+
+# 💻 ACESSO
+make bash-backend    # Terminal do Backend
+make bash-frontend   # Terminal do Frontend
+
+# 🧹 LIMPEZA
+make clean           # Remove containers e volumes
+make clean-all       # Remove tudo (containers, images, volumes)
+
+# ℹ️ UTILITÁRIOS
+make ps              # Lista containers em execução
+make test            # Executa testes
+make lint            # Executa linters
+make format          # Formata código
+make help            # Exibe esta lista de comandos
+```
+
+### Arquitetura Docker
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Docker Compose Network               │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ┌──────────────────┐     ┌──────────────────────┐     │
+│  │   PostgreSQL 15  │     │   Backend (Node)     │     │
+│  ├──────────────────┤     ├──────────────────────┤     │
+│  │ Port: 5432       │     │ Port: 3000           │     │
+│  │ Volume: db_data  │     │ Auto-reload c/ npm   │     │
+│  └──────────────────┘     │ Start: npm run dev   │     │
+│                           └──────────────────────┘     │
+│                                  │                      │
+│  ┌──────────────────────────────────────────────┐      │
+│  │        Frontend (React + Vite)               │      │
+│  ├──────────────────────────────────────────────┤      │
+│  │ Port: 3001                                   │      │
+│  │ Auto-reload com Vite HMR via polling        │      │
+│  │ VITE_API_URL=http://backend:3000/api        │      │
+│  └──────────────────────────────────────────────┘      │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+```
+
+### Troubleshooting Docker
+
+**Porta já em uso?**
+```bash
+# Mude as portas no arquivo .env
+BACKEND_PORT=3000
+FRONTEND_PORT=3001
+DATABASE_PORT=5432
+```
+
+**Container não inicia?**
+```bash
+# Ver logs detalhados
+make logs-backend
+make logs-frontend
+make logs-db
+```
+
+**Reconstruir do zero?**
+```bash
+make clean-all
+make up
+```
+
+---
+
 ## 🌍 Variáveis de Ambiente
 
 ### Backend - `backend/.env`
