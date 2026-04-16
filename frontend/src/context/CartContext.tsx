@@ -42,12 +42,12 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
           item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
         );
       }
-      return [...prevItems, { 
-        id: product.id, 
-        name: product.nome, 
-        price: product.price, 
-        image: product.image, 
-        quantity 
+      return [...prevItems, {
+        id: product.id,
+        name: product.nome ?? product.name,
+        price: product.price ?? product.preco,
+        image: product.image ?? product.imageUrl,
+        quantity
       }];
     });
   };

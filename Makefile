@@ -79,7 +79,7 @@ up:
 	@echo "  Backend:    http://localhost:3000"
 	@echo "  Frontend:   http://localhost:3001"
 	@echo "  API Docs:   http://localhost:3000/api-docs"
-	@echo "  Banco:      localhost:5432"
+	@echo "  Banco:      localhost:5433"
 
 ## Parar todos os containers
 down:

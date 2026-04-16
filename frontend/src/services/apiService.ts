@@ -274,6 +274,22 @@ export const updateOrder = async (id: string, orderData: any, token: string) => 
   return handleResponse(response);
 };
 
+export const editOrderItems = async (
+  id: string,
+  data: { items: { produtoId: string; quantidade: number; precoUnitario?: number }[]; desconto?: number; forma_pagamento?: string },
+  token: string
+) => {
+  const response = await fetch(`${BASE_URL}/orders/${id}/items`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify(data),
+  });
+  return handleResponse(response);
+};
+
 // Checkout Público/Cliente (Geralmente cria o pedido pelo lado do cliente)
 export const placeOrder = async (checkoutData: any, token?: string | null) => {
   const headers: HeadersInit = { 'Content-Type': 'application/json' };

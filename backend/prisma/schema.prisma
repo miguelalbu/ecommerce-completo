@@ -169,14 +169,16 @@ model Cupom {
 }
 
 model Pedido {
-  id             String   @id @default(uuid())
-  valor_total    Decimal  @db.Decimal(10, 2)
-  desconto       Decimal? @db.Decimal(10, 2)
-  status         String   @default("PROCESSANDO")
-  criadoEm       DateTime @default(now()) @map("criado_em")
-  cliente_nome   String?
-  codigoRastreio String?  @map("codigo_rastreio")
-  observacao     String?  @db.Text
+  id              String   @id @default(uuid())
+  valor_total     Decimal  @db.Decimal(10, 2)
+  desconto        Decimal? @db.Decimal(10, 2)
+  status          String   @default("PENDENTE")
+  criadoEm        DateTime @default(now()) @map("criado_em")
+  cliente_nome    String?
+  cliente_telefone String? @map("cliente_telefone")
+  codigoRastreio  String?  @map("codigo_rastreio")
+  observacao      String?  @db.Text
+  forma_pagamento String?  @map("forma_pagamento")
   cliente        Cliente? @relation(fields: [clienteId], references: [id])
   clienteId      String?  @map("cliente_id")
   loja           Loja?    @relation(fields: [lojaId], references: [id])

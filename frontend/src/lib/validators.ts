@@ -127,7 +127,8 @@ export interface CheckoutGuestErrors {
   nome?: string;
   email?: string;
   telefone?: string;
-  cpf?: string;
+  senha?: string;
+  confirmarSenha?: string;
 }
 
 export interface CheckoutAddressErrors {

@@ -18,11 +18,9 @@ import { getProfile, getAddresses, placeOrder, validateCupom } from "@/services/
 import { Store, Truck, MapPin, Loader2, Tag, X } from "lucide-react";
 import { useViaCEP } from "@/hooks/useViaCEP";
 import {
-  maskCPF,
   maskPhone,
   maskCEP,
   maskEstado,
-  validateCheckoutGuest,
   validateCheckoutAddress,
   type CheckoutGuestErrors,
   type CheckoutAddressErrors,
@@ -57,7 +55,7 @@ const pickupLocations = [
 const Checkout = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { isAuthenticated, token } = useAuth();
+  const { isAuthenticated, token, login } = useAuth();
   const { cartItems, clearCart } = useCart();
 
   // Snapshot do pedido para passar à tela de confirmação
@@ -69,9 +67,10 @@ const Checkout = () => {
   const [selectedAddressId, setSelectedAddressId] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState('PIX');
 
-  // Campos controlados com máscara (convidado)
-  const [cpfValue, setCpfValue] = useState('');
+  // Campos controlados (convidado)
   const [telefoneValue, setTelefoneValue] = useState('');
+  const [senhaValue, setSenhaValue] = useState('');
+  const [confirmarSenhaValue, setConfirmarSenhaValue] = useState('');
 
   // Campos controlados com máscara (endereço)
   const [cepValue, setCepValue] = useState('');
@@ -150,11 +149,10 @@ const Checkout = () => {
     mutationFn: (checkoutData: any) => placeOrder(checkoutData, token),
     onSuccess: (data) => {
       toast({ title: "Pedido realizado com sucesso!" });
+      // Auto-login se o backend criou uma conta no checkout
+      if (data.token) login(data.token);
       navigate(`/order-confirmation/${data.id}`, {
-        state: {
-          order: data,
-          ...pendingOrderState.current,
-        },
+        state: { order: data, ...pendingOrderState.current },
       });
       clearCart();
     },
@@ -240,20 +238,24 @@ const Checkout = () => {
 
     // ─── DADOS PESSOAIS (CONVIDADO) ─────────────────────
     if (!isAuthenticated) {
-      const guestFields = {
-        nome: formProps.nome || '',
-        email: formProps.email || '',
-        telefone: telefoneValue,
-        cpf: cpfValue,
-      };
-      const guestErrs = validateCheckoutGuest(guestFields);
-      if (Object.keys(guestErrs).length > 0) {
-        setGuestErrors(guestErrs);
+      const nome = formProps.nome || '';
+      const email = formProps.email || '';
+
+      const newGuestErrors: CheckoutGuestErrors = {};
+      if (nome.trim().length < 2) newGuestErrors.nome = 'Nome precisa ter ao menos 2 caracteres.';
+      if (!email.match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)) newGuestErrors.email = 'E-mail inválido.';
+      if (!telefoneValue || telefoneValue.replace(/\D/g, '').length < 10)
+        newGuestErrors.telefone = 'Telefone inválido.';
+      if (senhaValue.length < 6) newGuestErrors.senha = 'A senha precisa ter ao menos 6 caracteres.';
+      if (senhaValue !== confirmarSenhaValue) newGuestErrors.confirmarSenha = 'As senhas não coincidem.';
+
+      if (Object.keys(newGuestErrors).length > 0) {
+        setGuestErrors(newGuestErrors);
         hasErrors = true;
       } else {
         setGuestErrors({});
         if (addressData) {
-          addressData = { ...addressData, ...guestFields, sobrenome: formProps.sobrenome || '' };
+          addressData = { ...addressData, nome, email, telefone: telefoneValue, senha: senhaValue };
         }
       }
     }
@@ -265,6 +267,7 @@ const Checkout = () => {
       address: addressData,
       isPickup: deliveryMethod === 'pickup',
       cupomCodigo: appliedCupom?.codigo || null,
+      paymentMethod,
     };
 
     // Monta o endereço para exibir na confirmação
@@ -329,53 +332,67 @@ const Checkout = () => {
                   </Card>
                 ) : (
                   <Card>
-                    <CardHeader><CardTitle>Informações Pessoais</CardTitle></CardHeader>
+                    <CardHeader>
+                      <CardTitle>Criar sua conta</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        Seus dados ficam salvos para facilitar os próximos pedidos.
+                      </p>
+                    </CardHeader>
                     <CardContent className="space-y-4">
                       <div className="grid sm:grid-cols-2 gap-4">
                         <div>
                           <Label htmlFor="nome">Nome *</Label>
                           <Input
                             id="nome" name="nome" required
-                            className={guestErrors.nome ? "border-red-500" : ""}
+                            placeholder="Seu nome"
+                            className={guestErrors.nome ? 'border-red-500' : ''}
                           />
                           {guestErrors.nome && <p className="text-xs text-red-500 mt-1">{guestErrors.nome}</p>}
                         </div>
                         <div>
-                          <Label htmlFor="sobrenome">Sobrenome</Label>
-                          <Input id="sobrenome" name="sobrenome" />
-                        </div>
-                      </div>
-                      <div className="grid sm:grid-cols-2 gap-4">
-                        <div>
-                          <Label htmlFor="email">E-mail *</Label>
-                          <Input
-                            id="email" name="email" type="email" required
-                            className={guestErrors.email ? "border-red-500" : ""}
-                          />
-                          {guestErrors.email && <p className="text-xs text-red-500 mt-1">{guestErrors.email}</p>}
-                        </div>
-                        <div>
-                          <Label htmlFor="telefone">Telefone *</Label>
+                          <Label htmlFor="telefone">WhatsApp *</Label>
                           <Input
                             id="telefone" name="telefone"
                             value={telefoneValue}
                             onChange={(e) => setTelefoneValue(maskPhone(e.target.value))}
                             placeholder="(00) 00000-0000"
-                            className={guestErrors.telefone ? "border-red-500" : ""}
+                            className={guestErrors.telefone ? 'border-red-500' : ''}
                           />
                           {guestErrors.telefone && <p className="text-xs text-red-500 mt-1">{guestErrors.telefone}</p>}
                         </div>
                       </div>
                       <div>
-                        <Label htmlFor="cpf">CPF *</Label>
+                        <Label htmlFor="email">E-mail *</Label>
                         <Input
-                          id="cpf" name="cpf"
-                          value={cpfValue}
-                          onChange={(e) => setCpfValue(maskCPF(e.target.value))}
-                          placeholder="000.000.000-00"
-                          className={guestErrors.cpf ? "border-red-500" : ""}
+                          id="email" name="email" type="email" required
+                          placeholder="seu@email.com"
+                          className={guestErrors.email ? 'border-red-500' : ''}
                         />
-                        {guestErrors.cpf && <p className="text-xs text-red-500 mt-1">{guestErrors.cpf}</p>}
+                        {guestErrors.email && <p className="text-xs text-red-500 mt-1">{guestErrors.email}</p>}
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="senha">Senha *</Label>
+                          <Input
+                            id="senha" name="senha" type="password"
+                            value={senhaValue}
+                            onChange={(e) => setSenhaValue(e.target.value)}
+                            placeholder="Mínimo 6 caracteres"
+                            className={guestErrors.senha ? 'border-red-500' : ''}
+                          />
+                          {guestErrors.senha && <p className="text-xs text-red-500 mt-1">{guestErrors.senha}</p>}
+                        </div>
+                        <div>
+                          <Label htmlFor="confirmarSenha">Confirmar Senha *</Label>
+                          <Input
+                            id="confirmarSenha" name="confirmarSenha" type="password"
+                            value={confirmarSenhaValue}
+                            onChange={(e) => setConfirmarSenhaValue(e.target.value)}
+                            placeholder="Repita a senha"
+                            className={guestErrors.confirmarSenha ? 'border-red-500' : ''}
+                          />
+                          {guestErrors.confirmarSenha && <p className="text-xs text-red-500 mt-1">{guestErrors.confirmarSenha}</p>}
+                        </div>
                       </div>
                     </CardContent>
                   </Card>

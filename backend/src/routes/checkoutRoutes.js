@@ -6,9 +6,11 @@ const { protect } = require('../middleware/authMiddleware');
 const validate = require('../middleware/validate');
 const { checkoutSchema } = require('../validators/userValidators');
 
-// Middleware opcional: autentica se houver token, mas não bloqueia se não houver
+// Middleware opcional: autentica se houver token, mas não bloqueia convidados
 const getOptionalUser = (req, res, next) => {
-  protect(req, res, (err) => next());
+  const hasToken = req.headers.authorization?.startsWith('Bearer ');
+  if (!hasToken) return next(); // convidado sem token — passa direto
+  return protect(req, res, next); // tem token — autentica normalmente
 };
 
 /**

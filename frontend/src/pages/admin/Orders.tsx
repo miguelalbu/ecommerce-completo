@@ -18,28 +18,28 @@ const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('pt-BR');
 };
 
-// Configuração visual dos Status (Tradução e Cores)
 const getStatusConfig = (status: string) => {
-  // Normaliza para maiúsculo para garantir a comparação
-  const normalizedStatus = status ? status.toUpperCase() : "UNKNOWN";
-
-  switch (normalizedStatus) {
-    case 'PAID':
-      return { label: 'PAGO', className: 'bg-green-600 hover:bg-green-700 text-white border-transparent' };
-    case 'PENDING':
-      return { label: 'PENDENTE', className: 'bg-red-500 hover:bg-red-600 text-white border-transparent' };
-    case 'PROCESSANDO':
-    case 'PROCESSING':
-      return { label: 'PROCESSANDO', className: 'bg-yellow-500 hover:bg-yellow-600 text-black border-transparent' };
-    case 'SHIPPED':
-      return { label: 'ENVIADO', className: 'bg-blue-500 hover:bg-blue-600 text-white border-transparent' };
-    case 'DELIVERED':
-      return { label: 'ENTREGUE', className: 'bg-emerald-600 hover:bg-emerald-700 text-white border-transparent' };
-    case 'CANCELED':
-      return { label: 'CANCELADO', className: 'bg-gray-500 hover:bg-gray-600 text-white border-transparent' };
-    default:
-      return { label: normalizedStatus, className: 'bg-gray-400 text-white border-transparent' };
+  switch (status?.toUpperCase()) {
+    case 'PENDENTE':   return { label: 'Pendente',   className: 'bg-yellow-400 hover:bg-yellow-500 text-yellow-900 border-transparent' };
+    case 'CONFIRMADO': return { label: 'Confirmado', className: 'bg-blue-500 hover:bg-blue-600 text-white border-transparent' };
+    case 'EM_PREPARO': return { label: 'Em Preparo', className: 'bg-orange-400 hover:bg-orange-500 text-white border-transparent' };
+    case 'PRONTO':     return { label: 'Pronto',     className: 'bg-purple-500 hover:bg-purple-600 text-white border-transparent' };
+    case 'ENTREGUE':   return { label: 'Entregue',   className: 'bg-green-600 hover:bg-green-700 text-white border-transparent' };
+    case 'CANCELADO':  return { label: 'Cancelado',  className: 'bg-gray-500 hover:bg-gray-600 text-white border-transparent' };
+    default:           return { label: status ?? '—', className: 'bg-gray-400 text-white border-transparent' };
   }
+};
+
+// Extrai a unidade de entrega/retirada da observação do pedido
+const getUnidade = (order: any): string => {
+  if (!order.observacao) return order.loja?.nome ?? '—';
+  if (order.observacao.includes('[RETIRADA')) {
+    // Tenta extrair o nome da loja: "RETIRADA NA LOJA: Loja X (...)"
+    const match = order.observacao.match(/RETIRADA NA LOJA:\s*([^)]+)\)/);
+    if (match) return match[1].trim();
+    return 'Retirada na Loja';
+  }
+  return 'Entrega em Casa';
 };
 
 const Orders = () => {
@@ -98,7 +98,7 @@ const Orders = () => {
                         </div>
                         <div>
                           <span className="font-medium block text-gray-500">Unidade:</span>
-                          <span className="text-gray-900">{order.loja?.nome || '—'}</span>
+                          <span className="text-gray-900">{getUnidade(order)}</span>
                         </div>
                         <div>
                           <span className="font-medium block text-gray-500">Data:</span>
