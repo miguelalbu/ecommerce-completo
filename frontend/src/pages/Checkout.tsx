@@ -293,9 +293,8 @@ const Checkout = () => {
   };
 
   const subtotal = cartItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const frete = 0;
   const desconto = appliedCupom?.desconto ?? 0;
-  const total = subtotal + frete - desconto;
+  const total = subtotal - desconto;
 
   return (
     <div className="min-h-screen flex flex-col bg-muted/30">
@@ -655,7 +654,7 @@ const Checkout = () => {
                         {deliveryMethod === 'pickup' ? (
                           <span className="text-green-600 font-medium">Grátis (Retirada)</span>
                         ) : (
-                          <span>R$ {frete.toFixed(2)}</span>
+                          <span className="text-muted-foreground italic text-xs">A combinar via WhatsApp</span>
                         )}
                       </div>
                       {desconto > 0 && (

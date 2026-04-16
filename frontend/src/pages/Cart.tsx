@@ -1,10 +1,8 @@
 // src/pages/Cart.tsx
-import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
@@ -13,17 +11,12 @@ import { BACKEND_URL } from "@/services/apiService";
 
 const Cart = () => {
   const { cartItems, updateQuantity, removeFromCart } = useCart();
-  const [cep, setCep] = useState("");
 
-  // PROTEÇÃO 1: Evita NaN no cálculo do total
   const subtotal = cartItems.reduce((sum, item) => {
     const price = Number(item.price || 0);
     const qtd = Number(item.quantity || 1);
     return sum + (price * qtd);
   }, 0);
-
-  const shipping = subtotal > 199 ? 0 : 15.90;
-  const total = subtotal + shipping;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -114,13 +107,6 @@ const Cart = () => {
                   <CardContent className="p-6">
                     <h2 className="text-xl font-bold mb-6">Resumo do Pedido</h2>
                     
-                    <div className="mb-6">
-                      <label className="text-sm font-medium mb-2 block">Calcular Frete</label>
-                      <div className="flex gap-2">
-                        <Input placeholder="CEP" value={cep} onChange={(e) => setCep(e.target.value)} />
-                        <Button variant="outline">OK</Button>
-                      </div>
-                    </div>
                     <Separator className="my-6" />
                     <div className="space-y-3 mb-6">
                       <div className="flex justify-between">
@@ -129,18 +115,13 @@ const Cart = () => {
                       </div>
                       <div className="flex justify-between">
                         <span className="text-muted-foreground">Frete</span>
-                        <span className="font-semibold">{shipping === 0 ? "Grátis" : `R$ ${shipping.toFixed(2)}`}</span>
+                        <span className="text-sm text-muted-foreground italic">A combinar via WhatsApp</span>
                       </div>
-                      {subtotal < 199 && (
-                        <p className="text-xs text-muted-foreground">
-                          Falta R$ {(199 - subtotal).toFixed(2)} para frete grátis
-                        </p>
-                      )}
                     </div>
                     <Separator className="my-6" />
                     <div className="flex justify-between mb-6">
                       <span className="text-lg font-bold">Total</span>
-                      <span className="text-2xl font-bold text-primary">R$ {total.toFixed(2)}</span>
+                      <span className="text-2xl font-bold text-primary">R$ {subtotal.toFixed(2)}</span>
                     </div>
                     <Button className="w-full mb-3" size="lg" asChild>
                       <Link to="/checkout">Finalizar Compra</Link>
